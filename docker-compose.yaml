@@ -1,0 +1,110 @@
+version: '3.9'  # определяет версию файла Compose  https://docs.docker.com/compose/compose-file/
+
+services:  # содержит службы для приложения, у нас есть три службы app, db и pgadmin
+
+    app:
+        build:  # пробовал и так тоже, это текущая папка, он там ищет Dockerfile, на основании которого соберет
+            context: .
+            dockerfile: Dockerfile
+
+        environment:  # https://hub.docker.com/_/postgres
+            - DB_PASSWORD=pos12345
+        depends_on:  # текущий контейнер не будет запущен, пока не запустятся контейнеры - аргументы
+            - postgresql_database4
+        ports:
+            - 8000:8000   # local host port:container port
+#        command: ./wait-for-postgres.sh  pg_db_container4 # ./wait-for-postgres.sh здесь указывают команды, кот.будут выполнены внутри контейнера при запуске контейнера
+        volumes:
+          - ./.initdb:/docker-entrypoint-initdb.d #  ?? эта папка здесь для того, чтобы посмотреть, что в папке контейнера
+
+    db: # container postgresql_database4
+        container_name: pg_db_container4  # используется для изменения имени контейнера по умолчанию
+        image: postgres:latest  #  используется для определения образа Docker для службы,
+                                #  и мы используем предварительно созданный официальный образ PostgreSQL.
+                                # https://hub.docker.com/_/postgres
+        environment:
+#            - POSTGRES_HOST_AUTH_METHOD=trust Если установите на trust, то POSTGRES_PASSWORD не требуется.
+            - POSTGRES_PASSWORD=pos12345  # Из этих трех переменных является единственно необходимой
+            - POSTGRES_USER=postgres_admin  # если не задать, то Значение по умолчанию для POSTGRES_USER - postgres
+            - POSTGRES_DB=postgres_db  # если не задать, то Значение по умолчанию для POSTGRES_DB - значение POSTGRES_USER
+# когда я задавал другие имя POSTGRES_USER и POSTGRES_DB , то в pgAdmin создавалась еще одна база с именем postgres
+# если база данных не инициализируется в этом запуске(когда локальная папка уже содержит БД предыдущего запуска),
+# то переменные среды не изменяют имя БД, user, password
+
+        ports:
+            - 5432:5432   # local host port:container port
+        restart: always # no, on-failure, always - перезапускает контейнер, когда перезапускается демон Docker,
+                                          #        либо сам контейнер перезапускается вручную.
+
+        volumes:
+            - ./.database:/var/lib/postgresql/data
+            - ./.initdb:/docker-entrypoint-initdb.d
+#       путь к локальной папке, которая будет синхронизировать все файлы с внутренней папкой контейнера
+#       в том случае, если локальная папка с базой существует(с предыдущего запуска), инициализация БД пропускается !
+#        PostgreSQL Database directory appears to contain a database; Skipping initialization
+#        Директория базы данных PostgreSQL, похоже, содержит базу данных; Пропуск инициализации
+
+
+#volumes:
+#      - $HOME/Desktop/PostgreSql-Snippets/infile:/infile
+#      - pg_data:/var/lib/postgresql/data/  эта строка тега томов используется для хранения данных базы данных, первая часть - это имя тома, а вторая часть - это путь в контейнере, где хранятся данные базы данных.
+# тег томов  используется для монтирования папки с хост-машины
+#            в контейнер. Он состоит из двух полей, разделенных двоеточием, первая часть - это путь на хост-машине,
+#  а вторая часть - это путь в контейнере. Удалите эту часть, если вы не хотите монтировать sql-дамп в контейнер
+
+    pgadmin: # container
+        container_name: pgadmin_container
+        image: dpage/pgadmin4
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=admin@gmail.com # это логин для pgadmin
+            - PGADMIN_DEFAULT_PASSWORD=admin1234         # это пароль
+        ports:
+            - '5050:80'   # local port:container port
+        restart: always
+        volumes:
+            - ./.pgadmin:/root/.pgadmin
+
+#В конце файла docker-compose определили тома  db-data, pgadmin под тегом volume . Это позволяет
+#повторно использовать том в нескольких сервисах.
+# то есть это папки, которые есть в нескольких контейнерах docker, но на локальном хосте - это одна(одни) папки
+volumes: # https://github.com/compose-spec/compose-spec/blob/master/spec.md#volumes-top-level-element
+    .database:
+    .pgadmin:
+    .initdb:
+
+
+
+# https://www.youtube.com/watch?v=NRcpqse2zBo
+# чтобы запустить файл надо перейти в папку с ним и запустить командой:
+# docker-compose up
+# docker-compose up -d   - запустить в фоновом режиме
+# docker-compose ps
+# чтобы зайти в pgAdmin надо в браузере набрать адрес localhost:5050 и появится интерфейс,
+# куда надо ввести пользователя из    - PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
+# и пароль из PGADMIN_DEFAULT_PASSWORD=admin1234
+# далее нам надо завести сервер и на вкдадке General присвоить любое имя
+# на вкладке Connection Host name/address вводим имя сервиса из 4 строки services:  postgresql_database3
+                                          #
+# имя базы из  POSTGRES_DB=my_postgres_db3
+# user from  POSTGRES_USER=postgres
+# password from POSTGRES_PASSWORD=pos12345
+
+
+# docker-machine ip default    - посмотреть использование
+# docker inspect postgres
+
+# В результате создано три Volume
+#DRIVER    VOLUME NAME
+#local     810c195e37af1f9c216f4695da705e5d51adbc3d494ccc42e908144b9796821f   - container docker_1_2_2-pgadmin23-1
+#local     docker_1_2_2_database-data                                         - containe  docker_1_2_2-postgresql_database3-1
+#local     docker_1_2_2_pgadmin                                                           docker_1_2_2-pgadmin23-1
+
+# В результате создано два images
+# REPOSITORY       TAG       IMAGE ID       CREATED        SIZE
+# postgres         latest    577410342f45   21 hours ago   374MB
+# dpage/pgadmin4   latest    6c57db28521c   3 days ago     259MB
+
+# В результате создано два containers
+#CONTAINER ID   IMAGE             COMMAND                  CREATED          STATUS                     PORTS     NAMES
+#8eaf787c9df3   postgres:latest   "docker-entrypoint.s…"   33 minutes ago   Exited (0) 9 minutes ago             docker_1_2_2-postgresql_database3-1
+#ed2a3fc2e28d   dpage/pgadmin4    "/entrypoint.sh"         33 minutes ago   Exited (0) 9 minutes ago             docker_1_2_2-pgadmin23-1
