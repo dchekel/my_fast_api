@@ -7,7 +7,7 @@ import json
 app = FastAPI(debug=True, title="Random phrase")
 
 # Data
-with open("books.json") as f:
+with open("any_file.json") as f:
     books = json.load(f)
 
 
