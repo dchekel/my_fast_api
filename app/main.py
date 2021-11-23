@@ -24,9 +24,13 @@ async def get_books():
 
 
 @app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
+async def read_item(item_id: int, q: Optional[str] = None):
     return {"item_id": item_id, "q": q}
 
+
+@app.get("/users/{u_id}")
+async def get_user(u_id: int):
+    return {"id": u_id}
 
 if __name__ == '__main__':
     uvicorn.run(app, host="127.0.0.1", port="8000")
