@@ -1,10 +1,11 @@
 from fastapi import FastAPI
+from typing import Optional
 import uvicorn
 import json
 
 
 # Init
-app = FastAPI(debug=True, title="Random phrase")
+app = FastAPI(debug=True, title="Online shop")
 
 # Data
 with open("any_file.json") as f:
@@ -12,14 +13,19 @@ with open("any_file.json") as f:
 
 
 # Route
+@app.get('/')
+async def read_root():
+    return {"Hello": "online shop with FastAPI"}
+
+
 @app.get('/api/v2/books')
 async def get_books():
     return {"books": books}
 
 
-@app.get('/')
-async def get_main():
-    return {"books": "12345"}
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: Optional[str] = None):
+    return {"item_id": item_id, "q": q}
 
 
 if __name__ == '__main__':
