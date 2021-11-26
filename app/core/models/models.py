@@ -1,8 +1,9 @@
-from database import Base
+from app.core.settings import Base
 
 from sqlalchemy.orm import relationship
-from sqlalchemy import MetaData, Table, Column, ForeignKey
-from sqlalchemy import String, REAL, Integer, Text, DateTime, Boolean
+from sqlalchemy import Table, Column, ForeignKey
+from sqlalchemy import String, REAL, Integer, DateTime
+
 # from sqlalchemy_utils.types import ChoiceType
 
 
