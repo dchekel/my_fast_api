@@ -1,3 +1,4 @@
+'''
 import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -19,9 +20,7 @@ else:
 # input("Press Enter to continue...")
 Base = declarative_base()
 Session = sessionmaker()
-
-
-
+'''
 '''username varchar(100) not null,
 password varchar(60) not null,
 first_name varchar(100),
