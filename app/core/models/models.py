@@ -2,7 +2,7 @@ from app.core.settings import Base
 
 from sqlalchemy.orm import relationship
 from sqlalchemy import Table, Column, ForeignKey
-from sqlalchemy import String, REAL, Integer, DateTime
+from sqlalchemy import String, REAL, Integer, DateTime, Text
 
 # from sqlalchemy_utils.types import ChoiceType
 
@@ -17,28 +17,30 @@ association_table_user_role = Table('user_role', Base.metadata,
 class User(Base):
     __tablename__ = 'user'
 
-    id = Column(Integer, primary_key=True),
-    username = Column(String, nullable=False, unique=True),
-    password = Column(String, nullable=False),
-    first_name = Column(String),
-    last_name = Column(String),
-    email = Column(String, nullable=False, unique=True),
-    address = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True)
+    username = Column(String, nullable=False, unique=True)
+    password = Column(String, nullable=False)
+    # hashed_password = Column(String, nullable=False)
+    first_name = Column(String)
+    last_name = Column(String)
+    email = Column(String, nullable=False, unique=True)
+    address = Column(String)  # , nullable=False
     # relationship
     roles = relationship("Role",
                          secondary=association_table_user_role,  # многие-ко-многим
                          back_populates="users")
     payments = relationship("Payment", back_populates="users")
     orders = relationship("Order", back_populates="users")
+    carts = relationship("Cart", back_populates="users")
 
     def __repr__(self):
-        return f"<User: {self.username}, Name: {self.first_name} {self.last_name}"
+        return f"<User: {self.username}, Name: {self.first_name} {self.last_name}>"
 
 
 class Role(Base):
     __tablename__ = 'role'
 
-    id = Column(Integer, primary_key=True),
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
     # relationship
     users = relationship("User",
@@ -52,9 +54,9 @@ class Role(Base):
 class Payment(Base):
     __tablename__ = 'payment'
 
-    id = Column(Integer, primary_key=True),
-    amount = Column(REAL, nullable=False),
-    paid_at = Column(DateTime),
+    id = Column(Integer, primary_key=True)
+    amount = Column(REAL, nullable=False)
+    paid_at = Column(DateTime)
     order_id = Column(Integer, ForeignKey('order.id'))  # nullable=False
     user_id = Column(Integer, ForeignKey('user.id'))  # nullable=False
     # relationship
@@ -68,17 +70,18 @@ class Payment(Base):
 class Order(Base):
     __tablename__ = 'order'
 
-    id = Column(Integer, primary_key=True),
+    id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'))  # nullable=False
     status_id = Column(Integer, ForeignKey('order_status.id'))  # nullable=False
-    created_at = Column(DateTime),
-    closed_at = Column(DateTime),
-    total_cost = Column(REAL, nullable=False),
-    total_quantity = Column(REAL, nullable=False),
+    created_at = Column(DateTime)
+    closed_at = Column(DateTime)
+    total_cost = Column(REAL, nullable=False)
+    total_quantity = Column(REAL, nullable=False)
     # relationship
     users = relationship("User", back_populates="orders")
     order_statuses = relationship("OrderStatus", back_populates="orders")
     payments = relationship("Payment", back_populates="orders")
+    order_products = relationship("OrderProduct", back_populates="orders")
 
     def __repr__(self):
         return f"<Order(User: {self.user_id}, Cost: {self.total_cost})"
@@ -87,7 +90,7 @@ class Order(Base):
 class OrderStatus(Base):
     __tablename__ = 'order_status'
 
-    id = Column(Integer, primary_key=True),
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
     # relationship
     orders = relationship("Order", back_populates="order_statuses")
@@ -95,6 +98,67 @@ class OrderStatus(Base):
     def __repr__(self):
         return f"<OrderStatus: {self.name}"
 
+
+class OrderProduct(Base):
+    __tablename__ = 'order_product'
+
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey('order.id'))  # nullable=False
+    product_id = Column(Integer, ForeignKey('product.id'))  # nullable=False
+    quantity = Column(REAL)
+    price = Column(REAL)
+    # relationship
+    products = relationship("Product", back_populates="order_products")
+    orders = relationship("Order", back_populates="order_products")
+    # payments = relationship("Payment", back_populates="order_products")
+
+    def __repr__(self):
+        return f"<OrderProduct(Product: {self.product_id}, price: {self.price})"
+
+
+class Product(Base):
+    __tablename__ = 'product'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(Text)
+    price = Column(REAL)
+    category_id = Column(Integer, ForeignKey('category.id'))  # nullable=False
+    # relationship
+    categories = relationship("Category", back_populates="products")
+    carts = relationship("Cart", back_populates="products")
+    order_products = relationship("OrderProduct", back_populates="products")
+
+    def __repr__(self):
+        return f"<Product(Name: {self.name}, price: {self.price})"
+
+
+class Category(Base):
+    __tablename__ = 'category'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    # relationship
+    products = relationship("Product", back_populates="categories")
+
+    def __repr__(self):
+        return f"<Category(Name: {self.name})"
+
+
+class Cart(Base):
+    __tablename__ = 'cart'
+
+    id = Column(Integer, primary_key=True)
+    product_id = Column(Integer, ForeignKey('product.id'))  # nullable=False
+    user_id = Column(Integer, ForeignKey('user.id'))  # nullable=False
+    quantity = Column(REAL)
+    price = Column(REAL)
+    # relationship
+    users = relationship("User", back_populates="carts")
+    products = relationship("Product", back_populates="carts")
+
+    def __repr__(self):
+        return f"<Cart(User: {self.user_id}, product: {self.product_id}, quantity: {self.quantity})>"
 
 '''
 backref -
