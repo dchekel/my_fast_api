@@ -23,27 +23,8 @@ else:
 # input("Press Enter to continue...")
 Base = declarative_base()
 
-Session = sessionmaker()
 # from part 10
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-# https://stackoverflow.com/questions/14799189/avoiding-boilerplate-session-handling-code-in-sqlalchemy-functions
-@contextmanager
-def session_scope():  # рамки сессии
-    """Обеспечение транзакционной сферы вокруг серии операций
-    Provide a transactional scope around a series of operations."""
-    session = Session(bind=engine)  # from part 10 #  SessionLocal()
-    # session.current_user_id = None  # from part 10
-    try:
-        print('from session_scope:', session)
-        yield session
-        session.commit()
-    except:
-        session.rollback()
-        raise
-    finally:
-        session.close()
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 # from part 10
@@ -77,3 +58,25 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+'''
+Session = sessionmaker()
+
+
+# https://stackoverflow.com/questions/14799189/avoiding-boilerplate-session-handling-code-in-sqlalchemy-functions
+@contextmanager
+def session_scope():  # рамки сессии
+    """Обеспечение транзакционной сферы вокруг серии операций
+    Provide a transactional scope around a series of operations."""
+    session = Session(bind=engine)  # from part 10 #  SessionLocal()
+    # session.current_user_id = None  # from part 10
+    try:
+        print('from session_scope:', session)
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+'''

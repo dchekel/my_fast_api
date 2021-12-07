@@ -8,6 +8,7 @@ router = APIRouter()
 
 router.include_router(order_router)
 router.include_router(user_router)
+# router.include_router(users.router, prefix="/users", tags=["users"])
 
 
 @router.get("/")  # корневая папка
