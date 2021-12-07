@@ -49,9 +49,8 @@ def read_user_by_id(
     return user  # jsonable_encoder(user)
 
 
-'''
 @router.post("/login", status_code=201)
-async def login(
+def login(
         # декларируем OAuth2PasswordRequestForm зависимость
         db: Session = Depends(get_db),
         form_data: OAuth2PasswordRequestForm = Depends()
@@ -59,19 +58,27 @@ async def login(
     """
     Get the JWT for a user with data from OAuth2 request form body.
     """
+    print(db)
+    print(form_data)
+    print('form_data.username=', form_data.username)
+    print('form_data.password=', form_data.password)
+
     # проверяем тело запроса с помощью новой authenticate функции
-    user = authenticate(email=form_data.username, password=form_data.password, db=db)
+    user = authenticate(username=form_data.username, password=form_data.password, db=db)
+    # user = authenticate(email=form_data.username, password=form_data.password, db=db)
+    print(user)
     # Если аутентификация не удалась, пользователь не возвращается, это вызывает ответ HTTP 400.
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
+    access_token = create_access_token(sub=user.id)
+    print(access_token)
     return {  # JWT веб-токен JSON создается и возвращается клиенту
-        "access_token": create_access_token(sub=user.id),
+        "access_token": access_token,
         "token_type": "bearer",
     }
 # Если пользователь проходит проверку аутентификации, /login конечная точка возвращает JWT клиенту.
 #  Затем этот JWT можно использовать для доступа к ограниченным функциям.
 # Базовый пример этого находится в третьей новой конечной точке:
-'''
 
 
 @router.post("/signup", response_model=schemas.User, status_code=201)  # 1

@@ -2,7 +2,6 @@ from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, status
 from jose import jwt, JWTError
-# import jwt
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -58,7 +57,7 @@ async def get_current_user(
             raise credentials_exception
         token_data = TokenData(username=username)
         print('token_data=', token_data)  # username='2'
-    except :  # JWTError
+    except JWTError:  #
         raise credentials_exception
     user = db.query(User).filter(User.id == token_data.username).first()
     if user is None:

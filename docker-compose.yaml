@@ -56,7 +56,7 @@ services:  # содержит службы для приложения, у на�
         container_name: pgadmin_container
         image: dpage/pgadmin4
         environment:
-            - PGADMIN_DEFAULT_EMAIL=admin@gmail.com # это логин для pgadmin
+            - PGADMIN_DEFAULT_EMAIL=dchekel@gmail.com # это логин для pgadmin admin@gmail.com было вначале
             - PGADMIN_DEFAULT_PASSWORD=admin1234         # это пароль
         ports:
             - '5050:80'   # local port:container port

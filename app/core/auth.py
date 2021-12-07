@@ -1,16 +1,12 @@
-import jwt
-from fastapi import HTTPException, Security
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, OAuth2PasswordBearer
+from jose import jwt
+from fastapi.security import OAuth2PasswordBearer  # HTTPAuthorizationCredentials, HTTPBearer,
 from sqlalchemy.orm.session import Session
-from passlib.context import CryptContext
+# from passlib.context import CryptContext
 from datetime import datetime, timedelta
-#  from part 10
 from typing import Optional, MutableMapping, List, Union
 from app.core.models.models import User
 from app.core.settings import settings
 from app.core.security import verify_password
-
-#  from part 10
 
 JWTPayloadMapping = MutableMapping[
     str, Union[datetime, bool, str, List[str], List[int]]
@@ -21,11 +17,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login
 
 def authenticate(
     *,
-    email: str,
+    username: str,
     password: str,
     db: Session,
 ) -> Optional[User]:
-    user = db.query(User).filter(User.email == email).first()
+    # print('db=', db)
+    user = db.query(User).filter(User.username == username).first()
     if not user:
         return None
     # используем verify_password функцию, которую мы рассмотрели, в app/core/security.py
@@ -37,6 +34,7 @@ def authenticate(
 
 #  Ключевое слово sub аргумент create_access_token функции будет соответствовать идентификатору пользователя
 def create_access_token(*, sub: str) -> str:
+    print('def create_access_token')
     return _create_token(
         token_type="access_token",
         # app/core/config.py Обновляются , чтобы включить некоторые AUTH связанных параметров,
@@ -51,6 +49,7 @@ def _create_token(
     lifetime: timedelta,
     sub: str,
 ) -> str:
+    print('def _create_token')
     # Строим JWT. В RFC 7519 есть ряд обязательных / необязательных полей (известных как «заявки») .
     payload = {}
     expire = datetime.utcnow() + lifetime
@@ -73,7 +72,10 @@ def _create_token(
     # Утверждение «sub» (субъект) определяет принципала, который является субъектом JWT.
     # В нашем случае это будет идентификатор пользователя.
     payload["sub"] = str(sub)
-    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
+    print(payload, settings.JWT_SECRET, settings.ALGORITHM)
+    token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
+    print('token=', token)
+    return token
 
 
 '''
