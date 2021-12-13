@@ -10,6 +10,7 @@ from app.core.settings import settings
 
 from app.core.models.models import User
 from app.core.settings import SessionLocal  # session_scope
+from app.v1 import crud
 
 
 class TokenData(BaseModel):
@@ -67,13 +68,33 @@ async def get_current_user(
 # with session_scope() as session:
 
 
-async def get_first_user(db: Session = Depends(get_db),
-                         token: str = Depends(oauth2_scheme)
-                         ) -> User:
-    # user = session.query(User).first()
-    print(token)
-    user = db.query(User).first()
-    return user
+def get_current_active_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    print('def get_current_active_user(')
+    if not crud.user.is_active(current_user):
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+def get_current_active_superuser(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if not crud.user.is_superuser(current_user):
+        raise HTTPException(
+            status_code=400, detail="The user doesn't have enough privileges"
+        )
+    return current_user
+
+
+# async def get_first_user(db: Session = Depends(get_db),
+#                          token: str = Depends(oauth2_scheme)
+#                          ) -> User:
+#     user = session.query(User).first()
+    # print(token)
+    # user = db.query(User).first()
+    # return user
+
 #
 # def get_db() -> Generator:
 #     db = SessionLocal()

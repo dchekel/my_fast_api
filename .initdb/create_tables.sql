@@ -12,7 +12,7 @@
 create table if not exists "user" (  -- зарезервированное слово в pycharm, поэтому кавычки
   id serial,
   username varchar(100) not null,
-  password varchar(60) not null,  --  какой тип данных лучше использовать для поля password ?
+  password varchar(200) not null,  --  какой тип данных лучше использовать для поля password ?
   first_name varchar(100),
   last_name varchar(100),
   email varchar(100) not null,

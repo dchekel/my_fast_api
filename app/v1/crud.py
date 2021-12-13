@@ -1,7 +1,3 @@
-from app.core.models.models import User
-from app.core.schemas.schemas import UserCreate, UserUpdate
-from app.core.security import get_password_hash
-
 
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
@@ -11,6 +7,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 # from app.db.base_class import Base
 import typing
+from app.core.models.models import User
+from app.core.schemas.schemas import UserCreate, UserUpdate
+from app.core.security import get_password_hash
 
 
 class_registry: typing.Dict = {}
@@ -122,6 +121,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             update_data = obj_in.dict(exclude_unset=True)
 
         return super().update(db, db_obj=db_obj, obj_in=update_data)
+
+    def is_active(self, user: User) -> bool:
+        return user.is_active
 
     def is_superuser(self, user: User) -> bool:
         return user.is_superuser

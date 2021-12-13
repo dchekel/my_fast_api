@@ -35,8 +35,9 @@ def authenticate(
 #  Ключевое слово sub аргумент create_access_token функции будет соответствовать идентификатору пользователя
 def create_access_token(*, sub: str) -> str:
     print('def create_access_token')
+    print('ACCESS_TOKEN_EXPIRE_MINUTES=', settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return _create_token(
-        token_type="access_token",
+        token_type="Bearer",  # "access_token"  ?  какой правильный TODO
         # app/core/config.py Обновляются , чтобы включить некоторые AUTH связанных параметров,
         # такие сроки JWT действий до истечения срока действия
         lifetime=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -72,9 +73,17 @@ def _create_token(
     # Утверждение «sub» (субъект) определяет принципала, который является субъектом JWT.
     # В нашем случае это будет идентификатор пользователя.
     payload["sub"] = str(sub)
-    print(payload, settings.JWT_SECRET, settings.ALGORITHM)
+    print('payload=', payload)  # payload= {'type': 'access_token',
+    # время окончания  'exp': datetime.datetime(2021, 12, 15, 17, 52, 29, 301503),
+    # время создания по GMT 7 дек. 2021г. 17ч-52м-29сек   'iat': datetime.datetime(2021, 12, 7, 17, 52, 29, 301508),
+    # 'sub': '12'}
+    print('JWT_SECRET=', settings.JWT_SECRET)  # JWT_SECRET= TEST_SECRET_DO_NOT_USE_IN_PROD
+    print('ALGORITHM=', settings.ALGORITHM)  # ALGORITHM= HS256
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
-    print('token=', token)
+    print('token=', token)  # token= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+    # eyJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiZXhwIjoxNjM5NTkwNzQ5LCJpYXQiOjE2Mzg4OTk1NDksInN1YiI6IjEyIn0.
+    # n3yojEAJekb_UMfYcdnFKV29e7uIchbgXgpABRxgiE0
+    print('len token=', len(token))  # len token= 172
     return token
 
 

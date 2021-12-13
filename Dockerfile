@@ -4,7 +4,7 @@ FROM ubuntu
 RUN apt-get update
 RUN apt-get -y install postgresql-client
 
-RUN echo 'hi !!!!!!!!!'
+RUN echo 'dockerfile using'
 RUN pwd
 ADD ./.initdb/init.sql /docker-entrypoint-initdb.d/
 ADD ./.initdb/make_echo.sh /docker-entrypoint-initdb.d/

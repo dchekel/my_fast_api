@@ -1,20 +1,20 @@
-import sqlalchemy
+# from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from contextlib import contextmanager
+from sqlalchemy.exc import OperationalError
 # from part 10
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, validator
 from typing import List, Optional, Union
 
 # DATABASE_URI = DBE + dbUser + ':' + dbPassword + '@' + dbServer + '/'+ dbName
 # engine=create_engine('postgresql://<username>:<password>@localhost/<db_name>'
-DATABASE_URI = 'postgresql+psycopg2://postgres_admin:pos12345@localhost:5432/postgres_db'
+DATABASE_URI = 'postgresql+psycopg2://postgres_admin:admin1234@localhost:5432/postgres_db'
 
 try:
     engine = create_engine(DATABASE_URI)  # , echo=True)
     connection = engine.connect()
 
-except sqlalchemy.exc.OperationalError:
+except OperationalError:
     print("Database doesn't exists or username/password incorrect")
     # input("Press Enter to continue...")
 else:

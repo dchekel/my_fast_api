@@ -5,12 +5,13 @@ from fastapi import HTTPException, Depends  # , FastAPI
 # from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-# from sqlalchemy.orm.session import Session
-from app.core.models.models import User
-from app.core.settings import SessionLocal  # session_scope
+
+# from app.core.settings import SessionLocal  # session_scope
 import app.core.schemas.schemas as schemas
+from app.core.models import models
+# from app.core.models.models import User
 from app.v1.crud import user as crud_user
-from app.v1.api import get_current_user, get_first_user, get_db
+from app.v1.api import get_current_user, get_db, get_current_active_user  # , get_first_user
 from app.core.auth import (
     authenticate,
     create_access_token,
@@ -25,20 +26,35 @@ router = APIRouter(prefix="/v1/users")
 async def read_users(
         db: Session = Depends(get_db)
 ) -> Any:
-        users = db.query(User).all()  # session.query(User).all()
+        print('@router.get("/",')
+        users = db.query(models.User).all()  # session.query(User).all()
         return users  # jsonable_encoder(users) # результат вывода одинаковый
+
+
+# NOT WORKING ! 	Error: Unauthorized Response body "detail": "Not authenticated"
+@router.get("/me", response_model=schemas.User)  #
+def read_user_me(
+        db: Session = Depends(get_db),
+        current_user: models.User = Depends(get_current_active_user)  # =Depends(get_current_user)
+) -> Any:
+    """
+    Получение данных о текущем вошедшем в систему пользователе.
+    """
+    print('@router.get("/me",', db)
+    print('это вывод информации из read_users_me', current_user.email, 'hashed_passw=', current_user.password)
+    return current_user
 
 
 @router.get("/{user_id}", response_model=schemas.User)
 def read_user_by_id(
     user_id: int,
-    current_user: schemas.User = Depends(get_current_user),
+    # current_user: schemas.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Any:
     """
     Get a specific user by id.
     """
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(models.User).filter(models.User.id == user_id).first()
     # user = crud.user.get(db, id=user_id)
     # if user == current_user:
     #     return user
@@ -105,7 +121,7 @@ def create_user_signup(
     # print('2', db.__dict__)  # {'identity_map': <sqlalchemy.orm.identity.WeakInstanceDict object at 0x10e509ac0>, '_new': {}, '_deleted': {}, 'bind': Engine(sqlite:///example.db), '_Session__binds': {}, '_flushing': False, '_warn_on_events': False, '_transaction': None, '_nested_transaction': None, 'future': False, 'hash_key': 1, 'autoflush': False, 'expire_on_commit': True, 'enable_baked_queries': True, 'autocommit': False, 'twophase': False, '_query_cls': <class 'sqlalchemy.orm.query.Query'>, 'current_user_id': None}
     # print('3', Session)  #  <class 'sqlalchemy.orm.session.Session'>
     # print('4', user_in)  # 4 first_name='john' surname='Do' email='user_do@example.com' is_superuser=False password='string'
-    user = db.query(User).filter(User.email == user_in.email).first()  # 4
+    user = db.query(models.User).filter(models.User.email == user_in.email).first()  # 4
     # print('user = ', user)  #  <User: dch3, Name: dd cc>
     # используем ORM SQLAlchemy для запроса user таблицы базы данных , применяя фильтр, чтобы проверить,
     # существуют ли уже какие-либо пользователи с запрошенным адресом электронной почты.
@@ -125,16 +141,19 @@ def create_user_signup(
     return user
 
 
-# NOT WORKING !
-@router.get("/me")  # , response_model=schemas.User
-async def read_users_me(current_user: User = Depends(get_current_user)):  # =Depends(get_current_user)
-    """ Получение данных о текущем вошедшем в систему пользователе.
-    """
-    user = current_user
-    print('это вывод информации из read_users_me', user.email, 'hashed_passw=', user.password)  # hashed_password
-    return user
 
 '''
+
+@router.get("/", status_code=202)
+async def read_users(
+        db: Session = Depends(get_db)
+) -> Any:
+        print('@router.get("/",')
+        users = db.query(models.User).all()  # session.query(User).all()
+        return users  # jsonable_encoder(users) # результат вывода одинаковый
+
+
+
 @router.get("/show_me")  # , response_model=schemas.User
 async def read_user_me():  # User=Depends(get_current_user)
     users = session.query(User).all()  #
