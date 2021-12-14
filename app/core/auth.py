@@ -13,6 +13,7 @@ JWTPayloadMapping = MutableMapping[
 ]
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def authenticate(
@@ -21,8 +22,11 @@ def authenticate(
     password: str,
     db: Session,
 ) -> Optional[User]:
-    # print('db=', db)
+    print('authenticate db=', db)
+    print('authenticate username=', username)
+    print('authenticate password=', password)
     user = db.query(User).filter(User.username == username).first()
+    print('authenticate user=', user.id, user.username, user.email)
     if not user:
         return None
     # используем verify_password функцию, которую мы рассмотрели, в app/core/security.py

@@ -4,12 +4,14 @@ from fastapi.responses import FileResponse
 from .order import router as order_router
 from .user import router as user_router
 from .role import router as role_router
+from .category import router as category_router
 
 router = APIRouter()
 
 router.include_router(order_router)
 router.include_router(user_router)
 router.include_router(role_router)
+router.include_router(category_router)
 
 
 @router.get("/")  # корневая папка

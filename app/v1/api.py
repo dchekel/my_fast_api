@@ -35,7 +35,7 @@ async def get_current_user(
 ) -> User:
     # token = ''
     # print('db=', db)  # <sqlalchemy.orm.session.Session object at 0x10a0e8a30>
-    print('token=', token)
+    print('get_current_user token=', token)
     # token= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
     # eyJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiZXhwIjoxNjM5MzAxMjYxLCJpYXQiOjE2Mzg2MTAwNjEsInN1YiI6IjIifQ.
     # 0YzpPKRwcMkkuJZa0X45Oy_kq1xR8ZDSCddqHLrhcgA

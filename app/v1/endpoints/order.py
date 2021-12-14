@@ -27,7 +27,6 @@ async def get_order(
     order = db.query(Order).filter(Order.id == o_id).first()
     return jsonable_encoder(order)
 
-
 '''
 @router.post("/", status_code=201, response_model=Order)
 def create_order(
