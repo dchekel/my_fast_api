@@ -1,8 +1,8 @@
 from typing import Union
 
 from sqlalchemy.orm import Session
-
-from app.crud.base import CRUDBase
+from app.v1.crud import CRUDBase
+# from app.crud.base import CRUDBase
 from app.core.models.models import Category
 from app.core.models.models import User
 from app.core.schemas.category import CategoryCreate, CategoryUpdate, CategoryUpdateRestricted

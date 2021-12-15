@@ -36,7 +36,7 @@ class UserInDBBase(UserBase):
 
 # Additional properties stored in DB but not returned by API
 class UserInDB(UserInDBBase):
-    hashed_password: str
+    password: str
 
 
 # Additional properties to return via API

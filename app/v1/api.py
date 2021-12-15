@@ -17,6 +17,11 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 def get_db() -> Generator:
     try:
         db = SessionLocal()
@@ -49,18 +54,19 @@ async def get_current_user(
             token,
             settings.JWT_SECRET,
             algorithms=[settings.ALGORITHM],
-            options={"verify_aud": False},
+            options={"verify_aud": False},  # TODO это надо?
         )
         username: str = payload.get("sub")
-        print('settings.JWT_SECRET=', settings.JWT_SECRET)  # вывод: settings.JWT_SECRET= TEST_SECRET_DO_NOT_USE_IN_PROD
-        print('username=', username)  # username= 2
+        print('from api  def get_current_user', 'settings.JWT_SECRET=', settings.JWT_SECRET)  # вывод: settings.JWT_SECRET= TEST_SECRET_DO_NOT_USE_IN_PROD
+        print('from api  def get_current_user', 'username=', username)  # username= 2
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
         print('token_data=', token_data)  # username='2'
     except JWTError:  #
         raise credentials_exception
-    user = db.query(User).filter(User.id == token_data.username).first()
+    print('from api  def get_current_user', '\nUser.id=', User.id, '\ntoken_data.username=', token_data.username)
+    user = db.query(User).filter(User.username == token_data.username).first()  # TODO проверить типы данных filter
     if user is None:
         raise credentials_exception
     return user
@@ -68,9 +74,7 @@ async def get_current_user(
 # with session_scope() as session:
 
 
-def get_current_active_user(
-    current_user: User = Depends(get_current_user),
-) -> User:
+def get_current_active_user(current_user: User = Depends(get_current_user)):  # -> User
     print('def get_current_active_user(')
     if not crud.user.is_active(current_user):
         raise HTTPException(status_code=400, detail="Inactive user")

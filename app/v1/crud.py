@@ -123,10 +123,12 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
     def is_active(self, user: User) -> bool:
-        return user.is_active
+        user_status = True  # user.is_active
+        print(' TODO crud def is_active', '\nнадо сделать поле в таблице user, которое хранит активность')
+        return user_status
 
     def is_superuser(self, user: User) -> bool:
-        return user.is_superuser
+        return False  # user.is_superuser
 
 
 user = CRUDUser(User)

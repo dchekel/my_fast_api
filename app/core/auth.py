@@ -11,8 +11,9 @@ from app.core.security import verify_password
 JWTPayloadMapping = MutableMapping[
     str, Union[datetime, bool, str, List[str], List[int]]
 ]
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+# /v1/users
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/users/login")  # TODO это временно /v1/users/auth/login
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 

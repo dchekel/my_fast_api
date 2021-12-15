@@ -29,7 +29,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # from part 10
 class Settings(BaseSettings):
-    API_V1_STR: str = "/api/v1"
+    # API_V1_STR: str = "/api/v1"
+    # API_V1_STR: str = "/v1/users"
     JWT_SECRET: str = "TEST_SECRET_DO_NOT_USE_IN_PROD"
     ALGORITHM: str = "HS256"
 

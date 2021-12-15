@@ -1,17 +1,17 @@
 # https://fastapi.tiangolo.com/tutorial/bigger-applications/
 from typing import Any
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 from fastapi import HTTPException, Depends  # , FastAPI
 # from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-# from app.core.settings import SessionLocal  # session_scope
 import app.core.schemas.schemas as schemas
 from app.core.models import models
 # from app.core.models.models import User
 from app.v1.crud import user as crud_user
-from app.v1.api import get_current_user, get_db, get_current_active_user  # , get_first_user
+from app.v1.api import Token, get_current_user, get_db, get_current_active_user
+from app.core.security import get_password_hash
 from app.core.auth import (
     authenticate,
     create_access_token,
@@ -35,37 +35,37 @@ async def read_users(
 @router.get("/me", response_model=schemas.User)  #
 def read_user_me(
         db: Session = Depends(get_db),
-        current_user: models.User = Depends(get_current_active_user)  # =Depends(get_current_user)
+        current_user: schemas.User =Depends(get_current_active_user)  # =Depends(get_current_user)
 ) -> Any:
     """
     Получение данных о текущем вошедшем в систему пользователе.
     """
     print('@router.get("/me",', db)
-    print('это вывод информации из read_users_me', current_user.email, 'hashed_passw=', current_user.password)
+    print('from read_user_me \ncurrent_user.email=', current_user.email, '\npassw=', current_user.password)
     return current_user
 
 
 @router.get("/{user_id}", response_model=schemas.User)
 def read_user_by_id(
     user_id: int,
-    # current_user: schemas.User = Depends(get_current_user),
+    current_user: schemas.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Any:
     """
     Get a specific user by id.
     """
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    # user = crud.user.get(db, id=user_id)
-    # if user == current_user:
-    #     return user
-    # if not crud.user.is_superuser(current_user):
-    #     raise HTTPException(
-    #         status_code=400, detail="The user doesn't have enough privileges"
-    #     )
+    # user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = crud_user.get(db=db, id=user_id)
+    if user == current_user:
+        return user
+    if not crud_user.is_superuser(current_user):
+        raise HTTPException(
+            status_code=400, detail="The user doesn't have enough privileges"
+        )
     return user  # jsonable_encoder(user)
 
 
-@router.post("/login", status_code=201)
+@router.post("/login", status_code=201)  # , response_model=Token
 def login(
         # декларируем OAuth2PasswordRequestForm зависимость
         db: Session = Depends(get_db),
@@ -79,14 +79,19 @@ def login(
     print('form_data.username=', form_data.username)
     print('form_data.password=', form_data.password)
 
-    # проверяем тело запроса с помощью новой authenticate функции
+    # проверяем тело запроса с помощью authenticate функции
     user = authenticate(username=form_data.username, password=form_data.password, db=db)
-    # user = authenticate(email=form_data.username, password=form_data.password, db=db)
-    print(user)
+    print('from @router.post("/login" user=', user)
     # Если аутентификация не удалась, пользователь не возвращается, это вызывает ответ HTTP 400.
     if not user:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    access_token = create_access_token(sub=user.id)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    # if not user:
+    #     raise HTTPException(status_code=400, detail="Incorrect username or password")
+    access_token = create_access_token(sub=user.username)
     print(access_token)
     return {  # JWT веб-токен JSON создается и возвращается клиенту
         "access_token": access_token,
@@ -141,8 +146,33 @@ def create_user_signup(
     return user
 
 
-
 '''
+@router.post("/auth/login", response_model=Token)  # /token ; важно-response_model
+async def login_for_access_token(
+        form_data: OAuth2PasswordRequestForm = Depends(),
+        db: Session = Depends(get_db),
+):
+    print('from @app.post("/token"', '\nform_data=', form_data.username, form_data.password, form_data.client_id, form_data.client_secret, form_data.grant_type, form_data.scopes)
+    user = authenticate(db=db, username=form_data.username, password=form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    # срок действия токена
+    # access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    # Создайте настоящий токен доступа JWT и верните его.
+    # access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    access_token = create_access_token(sub=user.username)
+    # В спецификации JWT говорится, что есть ключ sub с предметом токена.
+    # Использовать его необязательно, но здесь вы должны поместить идентификацию пользователя,
+    # поэтому мы используем его здесь.
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+
+
 
 @router.get("/", status_code=202)
 async def read_users(
