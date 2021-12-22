@@ -8,7 +8,7 @@ from app.v1.api import get_db
 router = APIRouter(prefix="/v1/roles")
 
 
-@router.get("/", status_code=202)
+@router.get("/", status_code=202, tags=["Get Methods"])
 async def get_roles(
         db: Session = Depends(get_db)
 ) -> Any:
@@ -16,7 +16,7 @@ async def get_roles(
     return jsonable_encoder(roles)
 
 
-@router.get("/{role_id}")
+@router.get("/{role_id}", tags=["Get Methods"])
 async def get_role(
         role_id: int,
         db: Session = Depends(get_db)

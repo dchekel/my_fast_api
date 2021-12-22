@@ -1,30 +1,47 @@
-from pydantic import BaseModel, HttpUrl
-
+from pydantic import BaseModel
+from datetime import datetime
 # from typing import Sequence
 
 
 class OrderBase(BaseModel):
-    id: int
-    # total_cost: float
-    # label: str
-    # source: str
-    # url: HttpUrl
-
-
-class OrderCreate(OrderBase):
     user_id: int
-    # label: str
-    # source: str
-    # url: HttpUrl
+    status_id: int
+    total_cost: float
+    total_quantity: float
+
+
+class OrderCreate(BaseModel):
+    id: int
+    user_id: int
+    status_id: int
+    total_cost: float
+    total_quantity: float
+    created_at: datetime
 
 
 class OrderUpdate(OrderBase):
-    id: int
+    status_id: int
+    closed_at: datetime
 
 
 class OrderUpdateRestricted(BaseModel):
     id: int
-    # label: str
+
+
+# Properties shared by models stored in DB
+class OrderInDBBase(OrderBase):
+    id: int
+    user_id: int
+
+    class Config:
+        orm_mode = True
+
+
+# Properties to return to client
+class Order(OrderInDBBase):
+    pass
+
+
 '''
 
 # Properties shared by models stored in DB

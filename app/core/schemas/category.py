@@ -1,15 +1,15 @@
 from pydantic import BaseModel
-from typing import Sequence
+from typing import Sequence, Optional
 
 
 class CategoryBase(BaseModel):
-    # id: int
-    name: str
+    id: Optional[int]
+    name: Optional[str]
 
 
 class CategoryCreate(CategoryBase):
-    pass
-    # id: int
+    # pass
+    id: int
 
 
 class CategoryUpdate(CategoryBase):
@@ -18,7 +18,7 @@ class CategoryUpdate(CategoryBase):
 
 class CategoryUpdateRestricted(BaseModel):
     id: int
-    name: str
+    name: Optional[str]
 
 
 # Properties shared by models stored in DB

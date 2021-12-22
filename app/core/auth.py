@@ -23,11 +23,11 @@ def authenticate(
     password: str,
     db: Session,
 ) -> Optional[User]:
-    print('authenticate db=', db)
-    print('authenticate username=', username)
-    print('authenticate password=', password)
+    print('from authenticate db=', db)
+    print('from authenticate username=', username)
+    print('from authenticate password=', password)
     user = db.query(User).filter(User.username == username).first()
-    print('authenticate user=', user.id, user.username, user.email)
+    print('from authenticate user=', user.id, user.username, user.email)
     if not user:
         return None
     # используем verify_password функцию, которую мы рассмотрели, в app/core/security.py
@@ -39,8 +39,8 @@ def authenticate(
 
 #  Ключевое слово sub аргумент create_access_token функции будет соответствовать идентификатору пользователя
 def create_access_token(*, sub: str) -> str:
-    print('def create_access_token')
-    print('ACCESS_TOKEN_EXPIRE_MINUTES=', settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    print('from def create_access_token sub=', sub)
+    print('from def create_access_token ACCESS_TOKEN_EXPIRE_MINUTES=', settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return _create_token(
         token_type="Bearer",  # "access_token"  ?  какой правильный TODO
         # app/core/config.py Обновляются , чтобы включить некоторые AUTH связанных параметров,
@@ -55,7 +55,7 @@ def _create_token(
     lifetime: timedelta,
     sub: str,
 ) -> str:
-    print('def _create_token')
+    print('from def _create_token')
     # Строим JWT. В RFC 7519 есть ряд обязательных / необязательных полей (известных как «заявки») .
     payload = {}
     expire = datetime.utcnow() + lifetime
@@ -78,17 +78,17 @@ def _create_token(
     # Утверждение «sub» (субъект) определяет принципала, который является субъектом JWT.
     # В нашем случае это будет идентификатор пользователя.
     payload["sub"] = str(sub)
-    print('payload=', payload)  # payload= {'type': 'access_token',
+    print('from def _create_token payload=', payload)  # payload= {'type': 'access_token',
     # время окончания  'exp': datetime.datetime(2021, 12, 15, 17, 52, 29, 301503),
     # время создания по GMT 7 дек. 2021г. 17ч-52м-29сек   'iat': datetime.datetime(2021, 12, 7, 17, 52, 29, 301508),
     # 'sub': '12'}
-    print('JWT_SECRET=', settings.JWT_SECRET)  # JWT_SECRET= TEST_SECRET_DO_NOT_USE_IN_PROD
-    print('ALGORITHM=', settings.ALGORITHM)  # ALGORITHM= HS256
+    print('from def _create_token JWT_SECRET=', settings.JWT_SECRET)  # JWT_SECRET= TEST_SECRET_DO_NOT_USE_IN_PROD
+    print('from def _create_token ALGORITHM=', settings.ALGORITHM)  # ALGORITHM= HS256
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
-    print('token=', token)  # token= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+    print('from def _create_token token=', token)  # token= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
     # eyJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiZXhwIjoxNjM5NTkwNzQ5LCJpYXQiOjE2Mzg4OTk1NDksInN1YiI6IjEyIn0.
     # n3yojEAJekb_UMfYcdnFKV29e7uIchbgXgpABRxgiE0
-    print('len token=', len(token))  # len token= 172
+    print('from def _create_token len token=', len(token))  # len token= 172
     return token
 
 

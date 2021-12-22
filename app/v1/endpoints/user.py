@@ -16,13 +16,14 @@ from app.core.auth import (
     authenticate,
     create_access_token,
 )
+# from app.v1.endpoints.auth.JWTBearer import JWTBearer  # Дениса вариант
 router = APIRouter(prefix="/v1/users")
 
 # https://stackoverflow.com/questions/14799189/avoiding-boilerplate-session-handling-code-in-sqlalchemy-functions
 # with session_scope() as session:
 
 
-@router.get("/", status_code=202)
+@router.get("/", status_code=202, tags=["Get Methods"])  # когда ВСЕ , ТО response_model=..., НЕ НУЖЕН
 async def read_users(
         db: Session = Depends(get_db)
 ) -> Any:
@@ -31,8 +32,14 @@ async def read_users(
         return users  # jsonable_encoder(users) # результат вывода одинаковый
 
 
+# Вариант Дениса
+# @router.get("/secured", status_code=202, dependencies=[Depends(JWTBearer())])
+# def secured_url() -> dict:
+#     return {"data": "success"}
+
+
 # NOT WORKING ! 	Error: Unauthorized Response body "detail": "Not authenticated"
-@router.get("/me", response_model=schemas.User)  #
+@router.get("/me", response_model=schemas.User, tags=["Get Methods"])  #
 def read_user_me(
         db: Session = Depends(get_db),
         current_user: schemas.User =Depends(get_current_active_user)  # =Depends(get_current_user)
@@ -45,7 +52,7 @@ def read_user_me(
     return current_user
 
 
-@router.get("/{user_id}", response_model=schemas.User)
+@router.get("/{user_id}", response_model=schemas.User, tags=["Get Methods"])
 def read_user_by_id(
     user_id: int,
     current_user: schemas.User = Depends(get_current_user),
@@ -56,6 +63,7 @@ def read_user_by_id(
     """
     # user = db.query(models.User).filter(models.User.id == user_id).first()
     user = crud_user.get(db=db, id=user_id)
+    print('from @router.get("/{user_id}" def read_user_by_id\n', 'current_user=', current_user, '\nuser=', user, user.roles)
     if user == current_user:
         return user
     if not crud_user.is_superuser(current_user):
@@ -65,7 +73,7 @@ def read_user_by_id(
     return user  # jsonable_encoder(user)
 
 
-@router.post("/login", status_code=201)  # , response_model=Token
+@router.post("/login", status_code=201, tags=["Post Methods"])  # , response_model=Token
 def login(
         # декларируем OAuth2PasswordRequestForm зависимость
         db: Session = Depends(get_db),
@@ -102,7 +110,7 @@ def login(
 # Базовый пример этого находится в третьей новой конечной точке:
 
 
-@router.post("/signup", response_model=schemas.User, status_code=201)  # 1
+@router.post("/signup", response_model=schemas.User, status_code=201, tags=["Post Methods"])  # 1
 # указываем Pydantic, response_model, который формирует ответ JSON конечной точки.
 def create_user_signup(
         *,
