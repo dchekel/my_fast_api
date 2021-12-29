@@ -1,6 +1,7 @@
 # https://fastapi.tiangolo.com/tutorial/bigger-applications/
 from typing import Any
-from fastapi import APIRouter, status
+import typing as t
+from fastapi import APIRouter, status, Request, Response
 from fastapi import HTTPException, Depends  # , FastAPI
 # from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
@@ -23,12 +24,15 @@ router = APIRouter(prefix="/v1/users")
 # with session_scope() as session:
 
 
-@router.get("/", status_code=202, tags=["Get Methods"])  # когда ВСЕ , ТО response_model=..., НЕ НУЖЕН
+@router.get("/", status_code=202, response_model=t.List[schemas.User], tags=["Get Methods"])  # когда ВСЕ , ТО response_model=..., НЕ НУЖЕН
+# response_model_exclude_none=True,
 async def read_users(
+        response: Response,
         db: Session = Depends(get_db)
 ) -> Any:
         print('@router.get("/",')
         users = db.query(models.User).all()  # session.query(User).all()
+        response.headers["Content-Range"] = f"0-9/{len(users)}"
         return users  # jsonable_encoder(users) # результат вывода одинаковый
 
 
@@ -54,13 +58,18 @@ def read_user_me(
 
 @router.get("/{user_id}", response_model=schemas.User, tags=["Get Methods"])
 def read_user_by_id(
-    user_id: int,
-    current_user: schemas.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+        request: Request,
+        user_id: int,
+        current_user: schemas.User = Depends(get_current_user),
+        db: Session = Depends(get_db),
 ) -> Any:
     """
     Get a specific user by id.
     """
+    print('from router.get("/{user_id}" read_user_by_id')
+    for k, v in request.items():
+        print('key=', k, 'value=', v)
+
     # user = db.query(models.User).filter(models.User.id == user_id).first()
     user = crud_user.get(db=db, id=user_id)
     print('from @router.get("/{user_id}" def read_user_by_id\n', 'current_user=', current_user, '\nuser=', user, user.roles)
@@ -73,7 +82,7 @@ def read_user_by_id(
     return user  # jsonable_encoder(user)
 
 
-@router.post("/login", status_code=201, tags=["Post Methods"])  # , response_model=Token
+@router.post("/login", status_code=201, tags=["Post Methods"],  response_description="Login results:",)  # , response_model=Token
 def login(
         # декларируем OAuth2PasswordRequestForm зависимость
         db: Session = Depends(get_db),

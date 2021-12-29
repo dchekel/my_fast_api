@@ -67,6 +67,7 @@ class Payment(Base):
         return f"<Payment(User: {self.user_id}, Sum: {self.amount}, At: {self.paid_at})>"
 
 
+# В модели заказа описывается связь с таблицей товары_заказа с каскадным удалением
 class Order(Base):
     __tablename__ = 'order'
 
@@ -81,7 +82,10 @@ class Order(Base):
     users = relationship("User", back_populates="orders")
     order_statuses = relationship("OrderStatus", back_populates="orders")
     payments = relationship("Payment", back_populates="orders")
-    order_products = relationship("OrderProduct", back_populates="orders")
+    # order_products = relationship("OrderProduct", back_populates="orders")  # если так, тогда такое же в Order
+    # А для каскадного удаления строк заказа из order_products
+    # from https://stackoverflow.com/questions/5033547/sqlalchemy-cascade-delete
+    order_products = relationship("OrderProduct", cascade="all,delete", backref="orders")  # , back_populates="orders"
 
     def __repr__(self):
         return f"<Order(User: {self.user_id}, Cost: {self.total_cost})"
@@ -109,7 +113,7 @@ class OrderProduct(Base):
     price = Column(REAL)
     # relationship
     products = relationship("Product", back_populates="order_products")
-    orders = relationship("Order", back_populates="order_products")
+    # orders = relationship("Order", back_populates="order_products")  # закоментил, так как  backref="orders" в Order
     # payments = relationship("Payment", back_populates="order_products")
 
     def __repr__(self):
@@ -158,7 +162,7 @@ class Cart(Base):
     products = relationship("Product", back_populates="carts")
 
     def __repr__(self):
-        return f"<Cart(User: {self.user_id}, product: {self.product_id}, quantity: {self.quantity})>"
+        return f"<Cart(id: {self.id}, product_id: {self.product_id},user_id: {self.user_id}, quantity: {self.quantity}, price: {self.price})>"
 
 '''
 backref -

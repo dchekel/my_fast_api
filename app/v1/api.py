@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 from app.core.auth import oauth2_scheme
 from app.core.settings import settings
 
-from app.core.models.models import User
+from app.core.models.models import User, Cart
+# from app.core.schemas.cart import Cart
 from app.core.settings import SessionLocal  # session_scope
 from app.v1 import crud
 
@@ -90,19 +91,28 @@ def get_current_active_superuser(
     return current_user
 
 
-# async def get_first_user(db: Session = Depends(get_db),
-#                          token: str = Depends(oauth2_scheme)
-#                          ) -> User:
-#     user = session.query(User).first()
-    # print(token)
-    # user = db.query(User).first()
-    # return user
-
-#
-# def get_db() -> Generator:
-#     db = SessionLocal()
-#     db.current_user_id = None
-#     try:
-#         yield db
-#     finally:
-#         db.close()
+async def get_cart_current_user(
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),  # session_scope
+        # token: str = Depends(oauth2_scheme)
+) -> Cart:
+    '''
+    id: int
+    user_id: int
+    product_id: int
+    price: float
+    quantity: float
+    '''
+    print('from get_cart_current_user db=', db)  # <sqlalchemy.orm.session.Session object at 0x10a0e8a30>
+    #
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,  # .HTTP_401_UNAUTHORIZED
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    cart = db.query(Cart).filter(Cart.user_id == current_user.id).all()
+    # .with_entities(id, product_id, quantity, 'price')
+    print('from api  def get_cart_current_user', type(cart), 'cart=', cart)
+    if cart is None:
+        raise credentials_exception
+    return cart

@@ -6,6 +6,7 @@ from .user import router as user_router
 from .role import router as role_router
 from .category import router as category_router
 from .payment import router as payment_router
+from .cart import router as cart_router
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ router.include_router(user_router)
 router.include_router(role_router)
 router.include_router(category_router)
 router.include_router(payment_router)
+router.include_router(cart_router)
 
 
 @router.get("/", tags=["Get Methods"])  # корневая папка
